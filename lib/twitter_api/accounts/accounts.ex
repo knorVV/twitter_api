@@ -4,22 +4,9 @@ defmodule TwitterApi.Accounts do
   """
 
   import Ecto.Query, warn: false
+
   alias TwitterApi.Repo
-
   alias TwitterApi.Accounts.User
-
-  @doc """
-  Returns the list of users.
-
-  ## Examples
-
-      iex> list_users()
-      [%User{}, ...]
-
-  """
-  def list_users do
-    Repo.all(User)
-  end
 
   @doc """
   Gets a single user.
@@ -28,14 +15,44 @@ defmodule TwitterApi.Accounts do
 
   ## Examples
 
-      iex> get_user!(123)
+      iex> get_bare_user!(123)
       %User{}
 
-      iex> get_user!(456)
+      iex> get_bare_user!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  @spec get_bare_user!(non_neg_integer()) :: User.t() | any()
+  def get_bare_user!(id), do: Repo.get!(User, id)
+
+  @doc """
+  Gets user and preload him tweets.
+
+  ## Examples
+
+      iex> get_user(123)
+      %User{tweets: %TwitterApi.Tweets.Tweet{}}
+
+      iex> get_user(456)
+      nil
+
+  """
+  @spec get_user(non_neg_integer()) :: User.t() | nil
+  def get_user(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(:tweets)
+  end
+
+  @doc """
+    Get user by email
+  """
+  @spec get_user_by_email(String.t()) :: User.t() | nil
+  def get_user_by_email(email) do
+    User
+    |> where([u], u.email == ^email)
+    |> Repo.one()
+  end
 
   @doc """
   Creates a user.
@@ -49,6 +66,7 @@ defmodule TwitterApi.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_user(map()) :: {:ok, User.t()} | {:error, any()}
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
@@ -67,6 +85,7 @@ defmodule TwitterApi.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_user(User.t(), map()) :: {:ok, User.t()} | {:error, any()}
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
@@ -85,6 +104,7 @@ defmodule TwitterApi.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, any()}
   def delete_user(%User{} = user) do
     Repo.delete(user)
   end
@@ -98,6 +118,7 @@ defmodule TwitterApi.Accounts do
       %Ecto.Changeset{data: %User{}}
 
   """
+  @spec change_user(User.t(), map()) :: Ecto.Changeset.t()
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end

@@ -6,9 +6,9 @@ defmodule TwitterApi.AccountsTest do
   describe "users" do
     alias TwitterApi.Accounts.User
 
-    @valid_attrs %{}
-    @update_attrs %{}
-    @invalid_attrs %{}
+    @valid_attrs %{email: "email@email.em", password: "password", username: "username", second_name: "second_name", first_name: "first_name"}
+    @update_attrs %{email: "email@email.em", password: "password1", username: "username1", second_name: "second_name1", first_name: "first_name1"}
+    @invalid_attrs %{email: "", password: ""}
 
     def user_fixture(attrs \\ %{}) do
       {:ok, user} =
@@ -31,6 +31,10 @@ defmodule TwitterApi.AccountsTest do
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
+      assert user.email == "email@email.em"
+      assert user.username == "username"
+      assert user.second_name == "second_name"
+      assert user.first_name == "first_name"
     end
 
     test "create_user/1 with invalid data returns error changeset" do
@@ -40,6 +44,10 @@ defmodule TwitterApi.AccountsTest do
     test "update_user/2 with valid data updates the user" do
       user = user_fixture()
       assert {:ok, %User{} = user} = Accounts.update_user(user, @update_attrs)
+
+      assert user.username == "username1"
+      assert user.second_name == "second_name1"
+      assert user.first_name == "first_name1"
     end
 
     test "update_user/2 with invalid data returns error changeset" do
