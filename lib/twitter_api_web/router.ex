@@ -28,12 +28,14 @@ defmodule TwitterApiWeb.Router do
       delete "/logout", AuthController, :logout
     end
 
+    put "/tweets/:id/likes", TweetsController, :likes_update
+    resources "/:tweet_id/reply", ReplyController
+
     scope "/tweets" do
       pipe_through :protected_api
 
       get "/:id", TweetsController, :show
       resources "/", TweetsController, except: [:show]
-      resources "/:tweet_id/reply", ReplyController
     end
   end
 end

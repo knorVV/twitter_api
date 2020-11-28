@@ -20,6 +20,7 @@ defmodule TwitterApiWeb.AuthController do
 
         conn
         |> Guardian.Plug.sign_in(user, %{}, ttl: {30, :days})
+        |> assign(:authorized, true)
         |> render("ok.json")
 
       {:error, error} ->

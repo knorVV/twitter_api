@@ -4,6 +4,7 @@ defmodule TwitterApiWeb.TweetsControllerTest do
   """
   use TwitterApiWeb.ConnCase, async: false
 
+  alias TwitterApi.Tweets
   alias TwitterApiWeb.Support.Utils
   alias TwitterApiWeb.Support.User, as: UserHelper
   alias TwitterApiWeb.Support.Tweet, as: TweetHelper
@@ -87,13 +88,31 @@ defmodule TwitterApiWeb.TweetsControllerTest do
       }
     end
 
+    test "update likes. likes_update/2", %{conn: conn, tweet: tweet} do
+      {:ok, updated_tweet} = Tweets.update_tweet(tweet, %{likes: 1})
+
+      response =
+        conn
+        |> assign(:authorized, true)
+        |> put(Routes.tweets_path(conn, :likes_update, updated_tweet, %{likes: 1}))
+        |> json_response(200)
+
+      assert response == %{
+        "tweet" => %{
+          "tweet_text" => "some_text",
+          "likes" => 2,
+          "reply" => []
+        }
+      }
+    end
+
     test "update tweet with invalid attrs. update/2", %{conn: conn, tweet: tweet} do
       response =
         conn
         |> put(Routes.tweets_path(conn, :update, tweet, %{tweet_text: ""}))
         |> json_response(200)
 
-      assert response == %{"error" => "error"}
+      assert response == %{"status" => "error"}
     end
 
     test "delete tweet. update/2", %{conn: conn, tweet: tweet} do

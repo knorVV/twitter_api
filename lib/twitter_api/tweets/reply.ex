@@ -5,7 +5,7 @@ defmodule TwitterApi.Tweets.Reply do
   alias __MODULE__
 
   embedded_schema do
-    field :reply_to_tweet, :text # Текст ответа на твит
+    field :reply_to_tweet, :string # Текст ответа на твит
   end
 
   def changeset(%Reply{} = reply, attrs) do

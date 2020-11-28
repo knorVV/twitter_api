@@ -3,6 +3,7 @@ defmodule TwitterApiWeb.TweetsController do
 
   alias TwitterApi.Tweets
   alias TwitterApi.Tweets.Tweet
+  alias TwitterApi.Algo.LikesCalculatingAlgorithm, as: Likes
 
   require Logger
 
@@ -43,6 +44,26 @@ defmodule TwitterApiWeb.TweetsController do
       error ->
         Logger.error "Error during showing tweet. Error: #{inspect error}"
         render(conn, "error.json")
+    end
+  end
+
+  def likes_update(conn, %{"id" => id, "likes" => likes}) do
+    if conn.assigns[:authorized] do
+      tweet = Tweets.get_tweet!(id)
+      likes = Likes.calc_likes(tweet, likes)
+
+      case Tweets.update_tweet(tweet, %{likes: likes}) do
+        {:ok, %Tweet{id: tweet_id} = updated_tweet} ->
+          Logger.info "Tweet(id# #{tweet_id}) likes succesful update."
+          render(conn, "ok.json", %{tweet: updated_tweet})
+
+        {:error, reason} ->
+          Logger. error "Error during update tweet(id# #{inspect id}) likes. Error: #{inspect reason}"
+          render(conn, "error.json")
+      end
+    else
+      Logger. error "Attempt to updates likes by unauthorized client"
+      render(conn, "error.json")
     end
   end
 
