@@ -3,6 +3,7 @@ defmodule TwitterApiWeb.AuthController do
 
   alias TwitterApiWeb.Auth
   alias TwitterApiWeb.Auth.Guardian
+  alias TwitterApi.Accounts.User
 
   require Logger
 
@@ -14,7 +15,9 @@ defmodule TwitterApiWeb.AuthController do
 
   def login(conn, %{"user" => %{"email" => email, "password" => password}}) do
     case Auth.login(email, password) do
-      {:ok, user} ->
+      {:ok, %User{id: user_id} = user} ->
+        Logger.info "User(id# #{inspect user_id}) logged in successfully"
+
         conn
         |> Guardian.Plug.sign_in(user, %{}, ttl: {30, :days})
         |> render("ok.json")
