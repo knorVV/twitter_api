@@ -30,6 +30,7 @@ defmodule TwitterApi.Accounts.User do
     |> cast(attrs, [:username, :email, :second_name, :first_name, :middle_name, :password])
     |> validate_format(:password, @password)
     |> validate_format(:email, @email)
+    |> validate_required(:password)
     |> put_password_hash()
     |> validate_required([:email, :password_hash])
   end

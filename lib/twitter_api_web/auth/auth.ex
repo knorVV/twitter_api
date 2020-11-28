@@ -8,7 +8,6 @@ defmodule TwitterApiWeb.Auth do
 
   @spec login(String.t(), String.t()) :: {:ok, User.t()} | {:error, any()}
   def login(email, password) do
-    Logger.warn 789
     email
     |> Accounts.get_user_by_email()
     |> check_password(password)

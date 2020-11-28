@@ -1,12 +1,13 @@
 defmodule TwitterApiWeb.AuthControllerTest do
+  @moduledoc """
+    Tests for auth controller
+  """
   use TwitterApiWeb.ConnCase, async: false
 
-  alias TwitterApi.Accounts
-  
-  @user_valid_params %{email: "email@email.em", password: "password", username: "username"}
+  alias TwitterApiWeb.Support.User, as: UserHelper
 
   defp create_user(_) do
-    {:ok, user} = Accounts.create_user(@user_valid_params)
+    user = UserHelper.user_fixture()
 
     {:ok, user: user}
   end
