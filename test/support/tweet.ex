@@ -4,7 +4,13 @@ defmodule TwitterApiWeb.Support.Tweet do
   alias TwitterApi.Accounts.User
   alias TwitterApiWeb.Support.User, as: UserHelper
 
-  def tweet_fixture(attrs \\ %{}) do
+  def tweet_fixture(attrs \\ %{})
+
+  def tweet_fixture(%{user_id: _user_id} = attrs) do
+    tweet_fixture(tweet_valid_attrs(),  attrs)
+  end
+
+  def tweet_fixture(attrs) do
     user_id = simple_user()
     attrs = Map.put_new(attrs, :user_id, user_id)
 

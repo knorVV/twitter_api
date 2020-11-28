@@ -47,6 +47,20 @@ defmodule TwitterApiWeb.TweetsController do
     end
   end
 
+  def liked_tweets(conn, _) do
+    current_user = get_curent_user(conn)
+
+    case Tweets.get_liked_tweets_by_user(current_user.id) do
+      [_ | _] = tweets ->
+        Logger.info "Show user(id# #{inspect current_user.id}) liked tweets"
+        render(conn, "ok.json", %{tweets: tweets})
+
+      error ->
+        Logger.error "Error during showing tweet. Error: #{inspect error}"
+        render(conn, "error.json")
+    end
+  end
+
   def likes_update(conn, %{"id" => id, "likes" => likes}) do
     if conn.assigns[:authorized] do
       tweet = Tweets.get_tweet!(id)

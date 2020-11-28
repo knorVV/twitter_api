@@ -5,6 +5,7 @@ defmodule TwitterApiWeb.TweetsControllerTest do
   use TwitterApiWeb.ConnCase, async: false
 
   alias TwitterApi.Tweets
+  alias TwitterApi.Accounts.User
   alias TwitterApiWeb.Support.Utils
   alias TwitterApiWeb.Support.User, as: UserHelper
   alias TwitterApiWeb.Support.Tweet, as: TweetHelper
@@ -17,7 +18,7 @@ defmodule TwitterApiWeb.TweetsControllerTest do
   end
 
   defp create_tweet(%{user: user}) do
-    user_id = user.id
+    %User{id: user_id} = user
     tweet = TweetHelper.tweet_fixture(%{user_id: user_id})
 
     {:ok, tweet: tweet}
@@ -56,7 +57,7 @@ defmodule TwitterApiWeb.TweetsControllerTest do
   describe "Tweets" do
     setup [:create_user, :login, :create_tweet]
     
-    test "Get tweets. index/2", %{conn: conn, user: user} do
+    test "get tweets. index/2", %{conn: conn, user: user} do
       response =
         conn
         |> get(Routes.tweets_path(conn, :index, %{id: user.id}))
@@ -69,6 +70,26 @@ defmodule TwitterApiWeb.TweetsControllerTest do
             "reply" => [],
             "tweet_text" => "some_text"
           }
+        ]
+      }
+    end
+
+    test "get liked twieets. liked_tweets/2", %{conn: conn, user: user, tweet: first_tweet} do
+      # К первому твиту добавляется 1 лайк
+      Tweets.update_tweet(first_tweet, %{likes: 1})
+
+      # Создается второй твит с 3мя лайками
+      TweetHelper.tweet_fixture(%{user_id: user.id, likes: 3})
+
+      response =
+        conn
+        |> get(Routes.tweets_path(conn, :liked_tweets))
+        |> json_response(200)
+
+      assert response == %{
+          "tweets" => [
+            %{"tweet_text" => "some_text", "likes" => 3, "reply" => []},
+            %{"tweet_text" => "some_text", "likes" => 1, "reply" => []}
         ]
       }
     end

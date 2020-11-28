@@ -50,6 +50,18 @@ defmodule TwitterApi.Tweets do
   def get_tweet!(id), do: Repo.get!(Tweet, id)
 
   @doc """
+    Get a liked tweets
+  """
+  @spec get_liked_tweets_by_user(non_neg_integer()) :: [Tweet.t(), ...] | []
+  def get_liked_tweets_by_user(user_id) do
+    Tweet
+    |> where([t], t.user_id == ^user_id)
+    |> where([t], t.likes > 0) # Лайков больше 0
+    |> order_by([t], desc: t.likes)
+    |> Repo.all()
+  end
+
+  @doc """
   Creates a tweet.
 
   ## Examples

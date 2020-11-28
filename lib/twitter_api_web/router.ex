@@ -31,11 +31,17 @@ defmodule TwitterApiWeb.Router do
     put "/tweets/:id/likes", TweetsController, :likes_update
     resources "/:tweet_id/reply", ReplyController
 
+    scope "/liked_tweets" do
+      pipe_through :protected_api
+
+      get "/", TweetsController, :liked_tweets
+    end
+
     scope "/tweets" do
       pipe_through :protected_api
 
-      get "/:id", TweetsController, :show
       resources "/", TweetsController, except: [:show]
+      get "/:id", TweetsController, :show
     end
   end
 end

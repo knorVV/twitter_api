@@ -4,6 +4,7 @@ defmodule TwitterApi.Accounts.User do
 
   alias __MODULE__
   alias TwitterApi.Tweets.Tweet
+  alias TwitterApi.Accounts.Subscriber
 
   # Длина пароля от 8 до 16 символов. Только латинские буквы и цифры.
   @password ~r/^[a-zA-Z0-9~!@#$%^&*()_+=\-?:;,.<>\\|\/]{8,16}$/
@@ -16,6 +17,7 @@ defmodule TwitterApi.Accounts.User do
     field :first_name, :string # Имя
     field :middle_name, :string # Отчество/Второе имя
     has_many :tweets, Tweet # Твиты
+    many_to_many :subscribed_to, User, join_through: Subscriber # Подписки
 
     #Пароль
     field :password, :string, virtual: true
