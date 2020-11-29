@@ -13,7 +13,7 @@ defmodule TwitterApi.AccountsTest do
 
     @valid_attrs %{email: "email@email.em", password: "password", username: "username", second_name: "second_name", first_name: "first_name"}
     @update_attrs %{email: "email@email.em", password: "password1", username: "username1", second_name: "second_name1", first_name: "first_name1"}
-    @invalid_attrs %{email: "", password: ""}
+    @invalid_attrs %{email: "", password: "1"}
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)

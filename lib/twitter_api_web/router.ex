@@ -37,6 +37,13 @@ defmodule TwitterApiWeb.Router do
       get "/", TweetsController, :liked_tweets
     end
 
+    scope "/subscribe" do
+      pipe_through :protected_api
+
+      post "/", UserController, :subscribe
+      get "/tweets", TweetsController, :subscribers_tweets
+    end
+
     scope "/tweets" do
       pipe_through :protected_api
 

@@ -1,6 +1,8 @@
 defmodule TwitterApiWeb.TweetsController do
   use TwitterApiWeb, :controller
 
+  import TwitterApiWeb.Auth.CurrentUser
+
   alias TwitterApi.Tweets
   alias TwitterApi.Tweets.Tweet
   alias TwitterApi.Algo.LikesCalculatingAlgorithm, as: Likes
@@ -61,6 +63,20 @@ defmodule TwitterApiWeb.TweetsController do
     end
   end
 
+  def subscribers_tweets(conn, _) do
+    current_user = get_curent_user(conn)
+
+    case Tweets.get_subscribers_tweets(current_user.id) do
+      [_ | _] = tweets ->
+        Logger.info "Show subscribers tweets"
+        render(conn, "ok.json", %{tweets: tweets})
+
+      error ->
+        Logger.error "Error during showing tweets. Error: #{inspect error}"
+        render(conn, "error.json")
+    end
+  end
+
   def likes_update(conn, %{"id" => id, "likes" => likes}) do
     if conn.assigns[:authorized] do
       tweet = Tweets.get_tweet!(id)
@@ -103,8 +119,4 @@ defmodule TwitterApiWeb.TweetsController do
     Logger.info "Tweet(id# #{inspect id}) succesful delete."
     render(conn, "ok.json")
   end
-
-  # Для получения текущего пользователя.
-  # При расширени можно вынести в отдельный модуль и его импортировать в нужные контроллеры
-  defp get_curent_user(conn), do: Guardian.Plug.current_resource(conn)
 end

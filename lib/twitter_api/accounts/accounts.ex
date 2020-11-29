@@ -122,4 +122,14 @@ defmodule TwitterApi.Accounts do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  @doc """
+    Subscription to user
+  """
+  @spec add_subscription(User.t(), non_neg_integer()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def add_subscription(%User{user_ids: user_ids} = user, subscribed_id) do
+    user_ids = [subscribed_id | user_ids]
+
+    update_user(user, %{user_ids: user_ids})
+  end
 end

@@ -5,6 +5,7 @@ defmodule TwitterApiWeb.TweetsControllerTest do
   use TwitterApiWeb.ConnCase, async: false
 
   alias TwitterApi.Tweets
+  alias TwitterApi.Accounts
   alias TwitterApi.Accounts.User
   alias TwitterApiWeb.Support.Utils
   alias TwitterApiWeb.Support.User, as: UserHelper
@@ -33,6 +34,28 @@ defmodule TwitterApiWeb.TweetsControllerTest do
       |> put_req_header("authorization", "Bearer #{token}")
 
     {:ok, conn: conn}
+  end
+
+  defp create_tweets(user) do
+    {:ok, user: first_subscription} = create_user(%{}) # Первый пользователь
+    {:ok, user: seccond_subscription} = create_user(%{}) # Второй пользователь
+
+    subscription_list = [first_subscription, seccond_subscription] # Список пользователей
+    Enum.each(subscription_list, &Accounts.add_subscription(update_user(user.id), &1.id)) # Подписка на пользователей
+
+    list_for_tweets = [ # Список из id пользователя(подписка) и текста твита
+      {first_subscription.id, "some_text"},
+      {seccond_subscription.id, "another_text"}
+    ]
+
+    Enum.each(list_for_tweets, fn({id, text}) ->
+      TweetHelper.tweet_fixture(%{user_id: id, tweet_text: text})
+      :timer.sleep(1000) # 1 секунда между твитами
+    end) # Создание для каждого пользователя твита
+  end
+
+  defp update_user(id) do
+    TwitterApi.Repo.get(User, id)
   end
 
   describe "Create tweets" do
@@ -92,6 +115,21 @@ defmodule TwitterApiWeb.TweetsControllerTest do
             %{"tweet_text" => "some_text", "likes" => 1, "reply" => []}
         ]
       }
+    end
+
+    test "get supscribers twieets. subscribers_tweets/2", %{conn: conn, user: user} do
+      # Создаются твиты для привязанных пользователей
+      create_tweets(user)
+
+      response =
+        conn
+        |> get(Routes.tweets_path(conn, :subscribers_tweets))
+        |> json_response(200)
+
+      [last_tweet, first_tweet] = response["tweets"]
+
+      assert last_tweet["tweet_text"] == "another_text"
+      assert first_tweet["tweet_text"] == "some_text"
     end
 
     test "update tweet. update/2", %{conn: conn, tweet: tweet} do

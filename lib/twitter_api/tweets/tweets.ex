@@ -6,7 +6,9 @@ defmodule TwitterApi.Tweets do
   import Ecto.Query, warn: false
   alias TwitterApi.Repo
 
+  alias TwitterApi.Accounts.User
   alias TwitterApi.Tweets.Tweet
+  alias TwitterApi.Accounts
 
   @doc """
   Returns the list of tweets.
@@ -58,6 +60,19 @@ defmodule TwitterApi.Tweets do
     |> where([t], t.user_id == ^user_id)
     |> where([t], t.likes > 0) # Лайков больше 0
     |> order_by([t], desc: t.likes)
+    |> Repo.all()
+  end
+
+  @doc """
+    Get subscribers tweets
+  """
+  @spec get_subscribers_tweets(non_neg_integer()) :: [Tweet.t(), ...] | []
+  def get_subscribers_tweets(user_id) do
+    %User{user_ids: user_ids} = Accounts.get_bare_user!(user_id) # Получаем обновленные параметры пользователя
+
+    Tweet
+    |> where([t], t.user_id in ^user_ids)
+    |> order_by([t], desc: t.inserted_at)
     |> Repo.all()
   end
 
