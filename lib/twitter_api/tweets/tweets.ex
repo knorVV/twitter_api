@@ -115,6 +115,17 @@ defmodule TwitterApi.Tweets do
   end
 
   @doc """
+    Update likes
+  """
+  @spec update_tweet_likes(non_neg_integer(), Integer.t()) :: {:ok, Tweet.t()} | {:error, Ecto.Changeset.t()}
+  def update_tweet_likes(tweet_id, likes) do
+    Tweet
+    |> where([t], t.id == ^tweet_id)
+    |> update([t], inc: [likes: ^likes])
+    |> Repo.update_all([])
+  end
+
+  @doc """
   Deletes a tweet.
 
   ## Examples

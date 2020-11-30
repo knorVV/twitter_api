@@ -5,7 +5,6 @@ defmodule TwitterApiWeb.TweetsController do
 
   alias TwitterApi.Tweets
   alias TwitterApi.Tweets.Tweet
-  alias TwitterApi.Algo.LikesCalculatingAlgorithm, as: Likes
 
   require Logger
 
@@ -77,18 +76,16 @@ defmodule TwitterApiWeb.TweetsController do
     end
   end
 
-  def likes_update(conn, %{"id" => id, "likes" => likes}) do
+  def likes_update(conn, %{"id" => tweet_id, "likes" => likes}) do
     if conn.assigns[:authorized] do
-      tweet = Tweets.get_tweet!(id)
-      likes = Likes.calc_likes(tweet, likes)
-
-      case Tweets.update_tweet(tweet, %{likes: likes}) do
-        {:ok, %Tweet{id: tweet_id} = updated_tweet} ->
+      case Tweets.update_tweet_likes(tweet_id, likes) do
+        {1, nil} ->
+          updated_tweet = Tweets.get_tweet!(tweet_id)
           Logger.info "Tweet(id# #{tweet_id}) likes succesful update."
           render(conn, "ok.json", %{tweet: updated_tweet})
 
-        {:error, reason} ->
-          Logger. error "Error during update tweet(id# #{inspect id}) likes. Error: #{inspect reason}"
+        error ->
+          Logger. error "Error during update tweet(id# #{inspect tweet_id}) likes. Error: #{inspect error}"
           render(conn, "error.json")
       end
     else
