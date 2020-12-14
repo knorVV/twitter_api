@@ -3,10 +3,10 @@ defmodule TwitterApi.Repo.Migrations.CreateTweets do
 
   def change do
     create table(:tweets) do
-      add :tweet, :text
+      add :tweet_text, :text
       add :likes, :integer, default: 0
       add :reply, {:array, :map}, default: []
-      add :user_id, references(:users, on_delete: nothing)
+      add :user_id, references(:users, on_delete: :nothing)
 
       timestamps()
     end

@@ -5,23 +5,50 @@ defmodule TwitterApiWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", TwitterApiWeb do
-    pipe_through :api
+  pipeline :protected_api do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :accounts
+    plug :ensure_accounts
   end
 
-  # Enables LiveDashboard only for development
-  #
-  # If you want to use the LiveDashboard in production, you should put
-  # it behind authentication and allow only admins to access it.
-  # If your application does not have an admins-only section yet,
-  # you can use Plug.BasicAuth to set up some basic authentication
-  # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
-    import Phoenix.LiveDashboard.Router
+  pipeline :accounts do
+    plug TwitterApiWeb.Auth.Pipeline
+  end
 
-    scope "/" do
-      pipe_through [:fetch_session, :protect_from_forgery]
-      live_dashboard "/dashboard", metrics: TwitterApiWeb.Telemetry
+  pipeline :ensure_accounts do
+    plug Guardian.Plug.EnsureAuthenticated
+  end
+
+  scope "/api", TwitterApiWeb do
+    pipe_through :api
+
+    scope "/auth" do
+      post "/login", AuthController, :login
+      delete "/logout", AuthController, :logout
+    end
+
+    put "/tweets/:id/likes", TweetsController, :likes_update
+    resources "/:tweet_id/reply", ReplyController
+
+    scope "/liked_tweets" do
+      pipe_through :protected_api
+
+      get "/", TweetsController, :liked_tweets
+    end
+
+    scope "/subscribe" do
+      pipe_through :protected_api
+
+      post "/", UserController, :subscribe
+      get "/tweets", TweetsController, :subscribers_tweets
+    end
+
+    scope "/tweets" do
+      pipe_through :protected_api
+
+      resources "/", TweetsController, except: [:show]
+      get "/:id", TweetsController, :show
     end
   end
 end

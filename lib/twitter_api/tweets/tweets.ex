@@ -6,7 +6,9 @@ defmodule TwitterApi.Tweets do
   import Ecto.Query, warn: false
   alias TwitterApi.Repo
 
+  alias TwitterApi.Accounts.User
   alias TwitterApi.Tweets.Tweet
+  alias TwitterApi.Accounts
 
   @doc """
   Returns the list of tweets.
@@ -17,8 +19,19 @@ defmodule TwitterApi.Tweets do
       [%Tweet{}, ...]
 
   """
+  @spec list_tweets :: [Tweet.t(), ...]
   def list_tweets do
     Repo.all(Tweet)
+  end
+
+  @doc """
+    Retur all user tweets by user id
+  """
+  @spec list_tweets_by_user_id(non_neg_integer()) :: [Tweet.t(), ...]
+  def list_tweets_by_user_id(user_id) do
+    Tweet
+    |> where([t], t.user_id == ^user_id)
+    |> Repo.all()
   end
 
   @doc """
@@ -35,7 +48,33 @@ defmodule TwitterApi.Tweets do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_tweet!(non_neg_integer()) :: Twwet.t() | Ecto.NoResultsError.t()
   def get_tweet!(id), do: Repo.get!(Tweet, id)
+
+  @doc """
+    Get a liked tweets
+  """
+  @spec get_liked_tweets_by_user(non_neg_integer()) :: [Tweet.t(), ...] | []
+  def get_liked_tweets_by_user(user_id) do
+    Tweet
+    |> where([t], t.user_id == ^user_id)
+    |> where([t], t.likes > 0) # Лайков больше 0
+    |> order_by([t], desc: t.likes)
+    |> Repo.all()
+  end
+
+  @doc """
+    Get subscribers tweets
+  """
+  @spec get_subscribers_tweets(non_neg_integer()) :: [Tweet.t(), ...] | []
+  def get_subscribers_tweets(user_id) do
+    %User{user_ids: user_ids} = Accounts.get_bare_user!(user_id) # Получаем обновленные параметры пользователя
+
+    Tweet
+    |> where([t], t.user_id in ^user_ids)
+    |> order_by([t], desc: t.inserted_at)
+    |> Repo.all()
+  end
 
   @doc """
   Creates a tweet.
@@ -49,6 +88,7 @@ defmodule TwitterApi.Tweets do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_tweet(map()) :: {:ok, Tweet.t()} | {:error, Ecto.Changeset.t()}
   def create_tweet(attrs \\ %{}) do
     %Tweet{}
     |> Tweet.changeset(attrs)
@@ -67,10 +107,22 @@ defmodule TwitterApi.Tweets do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_tweet(Tweet.t(), map()) :: {:ok, Tweet.t()} | {:error, Ecto.Changeset.t()}
   def update_tweet(%Tweet{} = tweet, attrs) do
     tweet
     |> Tweet.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+    Update likes
+  """
+  @spec update_tweet_likes(non_neg_integer(), Integer.t()) :: {integer(), nil | [term()]}
+  def update_tweet_likes(tweet_id, likes) do
+    Tweet
+    |> where([t], t.id == ^tweet_id)
+    |> update([t], inc: [likes: ^likes])
+    |> Repo.update_all([])
   end
 
   @doc """
@@ -85,6 +137,7 @@ defmodule TwitterApi.Tweets do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_tweet(Tweet.t()) :: {:ok, Tweet.t()} | {:error, Ecto.Changeset.t()}
   def delete_tweet(%Tweet{} = tweet) do
     Repo.delete(tweet)
   end
@@ -98,6 +151,7 @@ defmodule TwitterApi.Tweets do
       %Ecto.Changeset{data: %Tweet{}}
 
   """
+  @spec update_tweet(Tweet.t(), map()) :: Ecto.Changeset.t()
   def change_tweet(%Tweet{} = tweet, attrs \\ %{}) do
     Tweet.changeset(tweet, attrs)
   end

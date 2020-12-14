@@ -18,6 +18,11 @@ config :twitter_api, TwitterApiWeb.Endpoint,
   pubsub_server: TwitterApi.PubSub,
   live_view: [signing_salt: "HaH8nKB+"]
 
+# guardian
+config :twitter_api, TwitterApiWeb.Auth.Guardian,
+  issuer: "twitter_api",
+  secret_key: "E+pKsEo46A5qq5qdE9QojHEZd0iDK5bn1fzbpOXGcb42XO3tuTGqpVaz/VUirpPD"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
