@@ -117,7 +117,7 @@ defmodule TwitterApi.Tweets do
   @doc """
     Update likes
   """
-  @spec update_tweet_likes(non_neg_integer(), Integer.t()) :: {:ok, Tweet.t()} | {:error, Ecto.Changeset.t()}
+  @spec update_tweet_likes(non_neg_integer(), Integer.t()) :: {integer(), nil | [term()]}
   def update_tweet_likes(tweet_id, likes) do
     Tweet
     |> where([t], t.id == ^tweet_id)
